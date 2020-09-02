@@ -34,8 +34,7 @@ $repositories($containerBuilder);
 $container = $containerBuilder->build();
 
 // Instantiate the app
-AppFactory::setContainer($container);
-$app = AppFactory::create();
+$app = AppFactory::createFromContainer($container);
 $callableResolver = $app->getCallableResolver();
 
 // Register middleware

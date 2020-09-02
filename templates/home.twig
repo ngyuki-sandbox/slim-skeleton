@@ -5,7 +5,17 @@
     <title></title>
 </head>
 <body>
-name: {{ name }},
-current_url: {{ current_url() }},
+    <form method="post" action="{{ url_for('home.post') }}">
+        <button type="submit">Submit</button>
+        <input type="hidden" name="{{ csrf.keys.name }}" value="{{ csrf.name }}">
+        <input type="hidden" name="{{ csrf.keys.value }}" value="{{ csrf.value }}">
+    </form>
+    {% if messages|length %}
+        <ul>
+            {% for m in messages %}
+                <li>{{ m }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
 </body>
 </html>

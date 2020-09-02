@@ -5,6 +5,7 @@ use App\Application\Handlers\HttpErrorHandler;
 use App\Application\Handlers\ShutdownHandler;
 use App\Application\ResponseEmitter\ResponseEmitter;
 use DI\ContainerBuilder;
+use Psr\Log\LoggerInterface;
 use Slim\Factory\AppFactory;
 use Slim\Factory\ServerRequestCreatorFactory;
 
@@ -53,8 +54,9 @@ $serverRequestCreator = ServerRequestCreatorFactory::create();
 $request = $serverRequestCreator->createServerRequestFromGlobals();
 
 // Create Error Handler
+$logger = $container->get(LoggerInterface::class);
 $responseFactory = $app->getResponseFactory();
-$errorHandler = new HttpErrorHandler($callableResolver, $responseFactory);
+$errorHandler = new HttpErrorHandler($callableResolver, $responseFactory, $logger);
 
 // Create Shutdown Handler
 $shutdownHandler = new ShutdownHandler($request, $errorHandler, $displayErrorDetails);
@@ -64,7 +66,7 @@ register_shutdown_function($shutdownHandler);
 $app->addRoutingMiddleware();
 
 // Add Error Middleware
-$errorMiddleware = $app->addErrorMiddleware($displayErrorDetails, false, false);
+$errorMiddleware = $app->addErrorMiddleware($displayErrorDetails, true, true);
 $errorMiddleware->setDefaultErrorHandler($errorHandler);
 
 // Run App & Emit Response

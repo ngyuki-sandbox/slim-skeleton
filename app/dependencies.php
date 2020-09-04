@@ -7,6 +7,9 @@ use Monolog\Logger;
 use Monolog\Processor\UidProcessor;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
+use Slim\App;
+use Slim\Csrf\Guard;
+use Slim\Factory\AppFactory;
 use Slim\Views\Twig;
 
 return function (ContainerBuilder $containerBuilder) {
@@ -32,6 +35,14 @@ return function (ContainerBuilder $containerBuilder) {
                 'strict_variables' => true,
                 'cache' => __DIR__ . '/../var/cache/twig',
             ]);
+        },
+
+        App::class => function (ContainerInterface $container) {
+            return AppFactory::createFromContainer($container);
+        },
+
+        Guard::class => function (App $app) {
+            return (new Guard($app->getResponseFactory()))->setPersistentTokenMode(true);
         },
     ]);
 };

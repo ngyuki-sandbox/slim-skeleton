@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 use App\Application\Actions\HomeAction;
+use App\Application\Actions\HomePostAction;
 use App\Application\Actions\User\ListUsersAction;
 use App\Application\Actions\User\ViewUserAction;
 use Slim\App;
@@ -27,5 +28,6 @@ return function (App $app) {
         $group->get('/{id}', ViewUserAction::class);
     });
 
-    $app->get('/home', HomeAction::class);
+    $app->get('/home', HomeAction::class)->setName('home');
+    $app->post('/home', HomePostAction::class)->setName('home.post');
 };

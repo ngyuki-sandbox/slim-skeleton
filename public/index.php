@@ -6,7 +6,7 @@ use App\Application\Handlers\ShutdownHandler;
 use App\Application\ResponseEmitter\ResponseEmitter;
 use DI\ContainerBuilder;
 use Psr\Log\LoggerInterface;
-use Slim\Factory\AppFactory;
+use Slim\App;
 use Slim\Factory\ServerRequestCreatorFactory;
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -34,8 +34,9 @@ $repositories($containerBuilder);
 $container = $containerBuilder->build();
 
 // Instantiate the app
-AppFactory::setContainer($container);
-$app = AppFactory::create();
+//AppFactory::setContainer($container);
+//$app = AppFactory::create();
+$app = $container->get(App::class);
 $callableResolver = $app->getCallableResolver();
 
 // Register middleware

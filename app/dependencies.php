@@ -29,12 +29,9 @@ return function (ContainerBuilder $containerBuilder) {
             return $logger;
         },
 
-        Twig::class => function () {
-            return Twig::create(__DIR__ . '/../templates', [
-                'debug' => true,
-                'strict_variables' => true,
-                'cache' => __DIR__ . '/../var/cache/twig',
-            ]);
+        Twig::class => function (ContainerInterface $container) {
+            $settings = $container->get('settings');
+            return Twig::create(__DIR__ . '/../templates', $settings['twig']);
         },
 
         App::class => function (ContainerInterface $container) {

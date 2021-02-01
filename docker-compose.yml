@@ -1,18 +1,24 @@
 version: '3.7'
 
-volumes:
-    logs:
-        driver: local
-
 services:
-    slim:
-        image: php:7-alpine
-        working_dir: /var/www
-        command: php -S 0.0.0.0:8080 -t public
-        environment:
-            docker: "true"
-        ports:
-            - 8080:8080
-        volumes:
-            - .:/var/www
-            - logs:/var/www/logs
+  app:
+    image: ngyuki/php-dev
+    init: true
+    ports:
+      - 9876:9876
+    working_dir: /code
+    volumes:
+      - .:/code
+    environment:
+      APP_DEBUG: 1
+      APP_CACHE_DIR: /code/data/cache
+      XDEBUG_MODE: develop,debug
+      XDEBUG_CONFIG: client_host=host.docker.internal
+    command:
+      - php
+      - -d
+      - zend_extension=xdebug.so
+      - -S
+      - 0.0.0.0:9876
+      - -t
+      - public

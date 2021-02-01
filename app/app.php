@@ -2,60 +2,34 @@
 declare(strict_types=1);
 
 use DI\ContainerBuilder;
+use Psr\Container\ContainerInterface;
 use Slim\App;
+use Slim\Factory\AppFactory;
 
-return function (bool $compile = false) {
+return function (ContainerBuilder $containerBuilder) {
+    $containerBuilder->addDefinitions([
+        App::class => function (ContainerInterface $container) {
+            $settings = $container->get('settings');
 
-    $containerBuilder = new ContainerBuilder();
+            $app = AppFactory::createFromContainer($container);
 
-    $cacheDir = __DIR__ . '/../var/cache';
-    $containerCacheFile = "$cacheDir/CompiledContainer.php";
+            $middleware = require __DIR__ . '/middleware.php';
+            $middleware($app);
 
-    if ($compile) {
-        if (file_exists($containerCacheFile)) {
-            unlink($containerCacheFile);
-        }
-        $containerBuilder->enableCompilation($cacheDir);
-    } else {
-        if (file_exists($containerCacheFile)) {
-            $containerBuilder->enableCompilation($cacheDir);
-        }
-    }
+            $routes = require __DIR__ . '/routes.php';
+            $routes($app);
 
-    $settings = require __DIR__ . '/settings.php';
-    $settings($containerBuilder);
+            $app->addRoutingMiddleware();
+            $app->addErrorMiddleware((bool)$settings['debug'], true, true);
 
-    $dependencies = require __DIR__ . '/dependencies.php';
-    $dependencies($containerBuilder);
+            $routeCacheFile = $container->get('routes.cache');
+            if (file_exists($routeCacheFile)) {
+                $app->getRouteCollector()->setCacheFile($routeCacheFile);
+            }
 
-    $repositories = require __DIR__ . '/repositories.php';
-    $repositories($containerBuilder);
+            return $app;
+        },
 
-    $container = $containerBuilder->build();
-
-    $app = $container->get(App::class);
-
-    $routeCacheFile = "$cacheDir/routes.php";
-
-    $middleware = require __DIR__ . '/middleware.php';
-    $middleware($app);
-
-    $routes = require __DIR__ . '/routes.php';
-    $routes($app);
-
-    $app->addRoutingMiddleware();
-
-    if ($compile) {
-        if (file_exists($routeCacheFile)) {
-            unlink($routeCacheFile);
-        }
-        $app->getRouteCollector()->setCacheFile($routeCacheFile);
-        $app->getRouteResolver()->computeRoutingResults('/', 'GET');
-    } else {
-        if (file_exists($routeCacheFile)) {
-            $app->getRouteCollector()->setCacheFile($routeCacheFile);
-        }
-    }
-
-    return $app;
+        'routes.cache' => __DIR__ . '/cache/routes.php',
+    ]);
 };

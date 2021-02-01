@@ -4,23 +4,19 @@ declare(strict_types=1);
 use DI\ContainerBuilder;
 use Monolog\Logger;
 use function DI\env;
-use function DI\get;
 
 return function (ContainerBuilder $containerBuilder) {
     $containerBuilder->addDefinitions([
-        'debug' => env('APP_DEBUG', false),
         'settings' => [
-            'displayErrorDetails' => get('debug'),
+            'debug' => env('APP_DEBUG', true),
+
             'logger' => [
                 'name' => 'slim-app',
-                'path' => isset($_ENV['docker']) ? 'php://stdout' : __DIR__ . '/../logs/app.log',
+                'path' => 'php://stdout',
                 'level' => Logger::DEBUG,
             ],
-            'twig' => [
-                'debug' => get('debug'),
-                'strict_variables' => true,
-                'cache' => __DIR__ . '/../var/cache/twig',
-            ],
+
+            'cacheDir' => env('APP_CACHE_DIR', __DIR__ . '/../data/cache/'),
         ],
     ]);
 };

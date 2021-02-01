@@ -6,18 +6,22 @@ use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use Monolog\Processor\UidProcessor;
 use Psr\Container\ContainerInterface;
+use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Log\LoggerInterface;
 use Slim\App;
 use Slim\Csrf\Guard;
-use Slim\Factory\AppFactory;
+use Slim\Http\Factory\DecoratedResponseFactory;
+use Slim\Psr7\Factory\ResponseFactory;
+use Slim\Psr7\Factory\StreamFactory;
 use Slim\Views\Twig;
 
 return function (ContainerBuilder $containerBuilder) {
     $containerBuilder->addDefinitions([
-        LoggerInterface::class => function (ContainerInterface $c) {
-            $settings = $c->get('settings');
 
+        LoggerInterface::class => function (ContainerInterface $container) {
+            $settings = $container->get('settings');
             $loggerSettings = $settings['logger'];
+
             $logger = new Logger($loggerSettings['name']);
 
             $processor = new UidProcessor();
@@ -29,13 +33,18 @@ return function (ContainerBuilder $containerBuilder) {
             return $logger;
         },
 
-        Twig::class => function (ContainerInterface $container) {
-            $settings = $container->get('settings');
-            return Twig::create(__DIR__ . '/../templates', $settings['twig']);
+        ResponseFactoryInterface::class => function () {
+            return new DecoratedResponseFactory(new ResponseFactory(), new StreamFactory());
         },
 
-        App::class => function (ContainerInterface $container) {
-            return AppFactory::createFromContainer($container);
+        Twig::class => function (ContainerInterface $container) {
+            $settings = $container->get('settings');
+            $options = [
+                'debug' => $settings['debug'],
+                'strict_variables' => true,
+                'cache' => $settings['debug'] ? false : $settings['cacheDir'] . '/twig',
+            ];
+            return Twig::create(__DIR__ . '/../templates', $options);
         },
 
         Guard::class => function (App $app) {

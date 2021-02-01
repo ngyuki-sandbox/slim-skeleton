@@ -16,7 +16,7 @@
         "slim/twig-view": "^3.1"
     },
     "require-dev": {
-        "phpunit/phpunit": "^8.5"
+        "phpunit/phpunit": "^9.5"
     },
     "autoload": {
         "psr-4": {
@@ -29,6 +29,7 @@
         }
     },
     "scripts": {
+        "compile": "@php scripts/optimize.php",
         "start": "php -S localhost:8080 -t public",
         "test": "phpunit"
     }
